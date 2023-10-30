@@ -7,13 +7,13 @@ enum BoolOp {
 }
 
 impl BoolOp {
-    fn as_str(&self) -> &str {
-        match self {
+    fn to_string(&self) -> String {
+        String::from( match self {
             BoolOp::NOT  => "!",
             BoolOp::AND  => ".",
             BoolOp::OR   => "+",
             BoolOp::NONE => "",
-        }
+        })
     }
 }
 
@@ -27,14 +27,15 @@ struct BoolExpr {
 impl BoolExpr {
     fn expand_to_string(&self) -> String {
 
-        if let Some(id) = &self.id {
-            format!("{}{}", self.operator.as_str(), id)
-        } else {
-            let mut expanded = self.operator.as_str().to_string();
-            for input in &self.operands {
-                expanded = format!("{} {}", expanded, input.expand_to_string());
+        match &self.id {
+            Some(id) => format!("{}{}", self.operator.to_string(), id),
+            None => {
+                let mut expanded = self.operator.to_string();
+                for input in &self.operands {
+                    expanded = format!("{} {}", expanded, input.expand_to_string());
+                }
+                format!("({})", expanded)
             }
-            format!("({})", expanded)
         }
 
     }
