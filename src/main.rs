@@ -26,7 +26,6 @@ struct BoolExpr {
 
 impl BoolExpr {
     fn expand_to_string(&self) -> String {
-
         match &self.id {
             Some(id) => format!("{}{}", self.operator.to_string(), id),
             None => {
@@ -37,15 +36,12 @@ impl BoolExpr {
                 format!("({})", expanded)
             }
         }
-
     }
 }
 
 impl std::fmt::Display for BoolExpr {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-
         write!(f, "{}", self.expand_to_string())
-
     }
 }
 
