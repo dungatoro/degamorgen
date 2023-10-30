@@ -17,11 +17,6 @@ impl BoolOp {
     }
 }
 
-enum OneOrMore<T> {
-    One(Box<T>),
-    More(Vec<T>)
-}
-
 #[derive(Clone)]
 struct BoolExpr {
     operator: BoolOp,
