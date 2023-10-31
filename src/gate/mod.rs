@@ -1,11 +1,11 @@
 use std::collections::HashMap;
+use std::iter::zip;
 use itertools::Itertools;
 
 mod helper;
 use helper::*;
 
-
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Gate {
     ID(String),
     NOT(Box<Gate>),
@@ -21,6 +21,7 @@ impl std::fmt::Display for Gate {
 
 impl Gate {
     fn to_string(&self) -> String {
+        // string with lispy notation
         match self {
             Self::ID(id) => id.clone(),
             Self::NOT(gate) => format!("!{}", gate.to_string()),
@@ -41,18 +42,20 @@ impl Gate {
         }
     }
 
-    pub fn eval(&self, ips: &HashMap<&str, bool>) -> bool {
+    pub fn eval(&self, inputs: &HashMap<&str, bool>) -> bool {
         match self {
-            Gate::ID(id) => ips[id.as_str()],
-            Gate::NOT(gate) => !gate.eval(ips),
-            Gate::AND(gates) => 
-                gates.iter().fold(true, |acc, gate| acc & gate.eval(ips)),
-            Gate::OR(gates) => 
-                gates.iter().fold(false, |acc, gate| acc | gate.eval(ips))
+            Gate::ID(id) => inputs[id.as_str()],
+            Gate::NOT(gate) => !gate.eval(inputs),
+            Gate::AND(gates) => gates
+                .iter()
+                .fold(true, |acc, gate| acc & gate.eval(inputs)),
+            Gate::OR(gates) => gates
+                .iter()
+                .fold(false, |acc, gate| acc | gate.eval(inputs))
         }
     }
 
-    pub fn find_ids(&self) -> Vec<&str> {
+    fn find_ids(&self) -> Vec<&str> {
         let mut ids: Vec<&str> = Vec::new();
         match self {
             Gate::ID(id) => ids.push(id.as_str()),
@@ -66,13 +69,14 @@ impl Gate {
                     ids.append(&mut gate.find_ids());
                 }
         }
+        ids = ids.into_iter().unique().collect();
         ids.sort();
-        ids.into_iter().unique().collect()
+        ids
     }
 
     pub fn truth_table(&self) {
         let ids = self.find_ids();
-
+        // header collected into string so its len can be used to underline
         let mut top = String::new();
         for id in ids.iter() { 
             top += format!(" {id} |").as_str(); 
@@ -84,24 +88,21 @@ impl Gate {
         }
         println!("{top}");
 
-        let num_ips = ids.len();
-        let mut vals = vec![false;num_ips];
-        let mut ips = HashMap::new();
+        let mut values = vec![false;ids.len()];
+        let mut inputs = HashMap::new();
         
-        loop {
-            for idx in 0..num_ips { // update hashmap
-                ips.insert( ids[idx], vals[idx]);
+        while !values.is_empty() {
+            for (id, val) in zip(&ids, &values) {
+                 inputs.insert( *id, *val);
+
+                 for _ in 0..id.len() -1 { print!(" ") }
+                 print!(" {} |", *val as u8);
             }
 
-            for val in vals.iter() { // fill columns
-                print!(" {} |", val.as_bit());
-            }
+            let out = self.eval(&inputs);
+            print!(" {}\n", out as u8); 
 
-            let out = self.eval(&ips);
-            print!(" {}\n", out.as_bit()); // add answer
-
-            vals.next_input();
-            if vals == vec![false;num_ips] { break; }
+            values.next_input();
         }
     }
 }

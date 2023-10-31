@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 mod gate;
 use gate::*;
 
@@ -10,7 +8,8 @@ fn main() {
 
     let gates = Gate::OR( vec![ a.clone(), Gate::NOT(Box::new(c)), Gate::AND( vec![ a.clone(), b]) ]);
 
-    println!("{}", gates);
+    println!("Circuit: {}", gates);
+    println!("Debug:   {:?}", gates);
     gates.truth_table();
 }
 

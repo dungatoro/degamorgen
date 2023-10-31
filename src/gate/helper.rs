@@ -9,20 +9,9 @@ impl Inputs for Vec<bool> {
                 *bit = false;
             } else {
                 *bit = true;
-                break
+                return
             }
         }
+        *self = Vec::new(); // empties if it overflows
     }
-}
-
-pub trait TruthTable {
-    fn as_bit(&self) -> char;
-}
-
-impl TruthTable for bool {
-    fn as_bit(&self) -> char {
-        if *self { '1' }
-        else     { '0' }
-    }
-
 }
