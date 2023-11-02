@@ -105,5 +105,68 @@ impl Gate {
             values.next_input();
         }
     }
+
+    fn push(&mut self, gate: Gate) {
+        match self {
+            Gate::OR(gates) =>  { gates.push(gate) },
+            Gate::AND(gates) => { gates.push(gate) },
+            _ => {}
+        }
+    }
+
+    fn try_not(self, not: &mut bool) -> Gate {
+        if *not {
+            *not = false;
+            Gate::NOT( Box::new(self))
+        } else {
+            self
+        }
+    }
+        
+
+    pub fn from(expr: String) -> Gate {
+        let mut gate = Gate::OR( Vec::new() );
+        let mut id = String::new();
+        let mut not = false;
+
+        let chars: Vec<char> = expr.chars().collect();
+        let mut idx = 0;
+
+        while idx < expr.len() {
+            match chars[idx] {
+                '(' => {
+                    let start = idx;
+                    to_block_end(&chars, &mut idx);
+
+                    let block = Gate::from(expr[start+1..=idx].to_string());
+                    gate.push( block.try_not(&mut not));
+                }
+                ')' | ' ' => 
+                    if !id.is_empty() {
+                        let id_gate = Gate::ID(id);
+                        gate.push(id_gate.try_not(&mut not));
+
+                        id = String::new();
+                    }
+                '+' => gate = Gate::OR( Vec::new() ),
+                '.' => gate = Gate::AND( Vec::new() ),
+                '!' => not = true,
+                _ => id.push( chars[idx]),
+            }
+            idx += 1;
+        }
+        if !id.is_empty() {
+            let id_gate = Gate::ID(id);
+            gate.push(id_gate.try_not(&mut not));
+        }
+        gate
+    }
 }
 
+macro_rules! gate {
+    ($($arg:tt)*) => {{
+        let gates = std::fmt::format(std::format_args!($($arg)*));
+        Gate::from(gates)
+    }}
+}
+pub(crate) use gate;
